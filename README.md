@@ -15,7 +15,8 @@
 
 ---
 
-![ResumeIQ Screenshot](https://via.placeholder.com/900x500/0e0f11/c9a84c?text=ResumeIQ+—+Intelligent+Resume+Tailoring)
+<img width="1892" height="918" alt="image" src="https://github.com/user-attachments/assets/4ddb4340-b000-4e6d-a778-be21982dc017" />
+
 
 </div>
 
