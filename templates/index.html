@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ResumeIQ — AI-powered resume tailoring. Match your resume to any job description and maximize your ATS score instantly.">
+  <title>ResumeIQ — Intelligent Resume Tailoring</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════════
+       DESIGN TOKENS
+    ═══════════════════════════════════════════════ */
+    :root {
+      --bg:          #0e0f11;
+      --bg2:         #141618;
+      --bg3:         #1a1c1f;
+      --bg4:         #202328;
+      --line:        rgba(255,255,255,0.07);
+      --line2:       rgba(255,255,255,0.12);
+      --gold:        #c9a84c;
+      --gold2:       #e8c76a;
+      --gold-dim:    rgba(201,168,76,0.15);
+      --gold-glow:   rgba(201,168,76,0.08);
+      --text:        #f0ede8;
+      --text2:       #9a9590;
+      --text3:       #5c5a56;
+      --green:       #3ecf8e;
+      --green-bg:    rgba(62,207,142,0.10);
+      --green-line:  rgba(62,207,142,0.25);
+      --red:         #f16063;
+      --red-bg:      rgba(241,96,99,0.10);
+      --red-line:    rgba(241,96,99,0.25);
+      --amber:       #f5a623;
+      --amber-bg:    rgba(245,166,35,0.10);
+      --blue:        #5b8dee;
+      --blue-bg:     rgba(91,141,238,0.10);
+      --blue-line:   rgba(91,141,238,0.25);
+      --r-sm:  6px;
+      --r-md:  10px;
+      --r-lg:  14px;
+      --r-xl:  18px;
+      --r-2xl: 24px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════════ */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ═══════════════════════════════════════════════
+       ANIMATED BACKGROUND
+    ═══════════════════════════════════════════════ */
+    .bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .bg-canvas::before {
+      content: '';
+      position: absolute;
+      width: 700px;
+      height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(201,168,76,0.07) 0%, transparent 70%);
+      top: -200px;
+      right: -150px;
+      animation: floatOrb 18s ease-in-out infinite;
+    }
+
+    .bg-canvas::after {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(91,141,238,0.05) 0%, transparent 70%);
+      bottom: -100px;
+      left: -100px;
+      animation: floatOrb2 22s ease-in-out infinite;
+    }
+
+    @keyframes floatOrb {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50%       { transform: translate(-40px, 60px) scale(1.1); }
+    }
+
+    @keyframes floatOrb2 {
+      0%, 100% { transform: translate(0, 0); }
+      50%       { transform: translate(60px, -40px); }
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+    }
+
+    /* ═══════════════════════════════════════════════
+       TOPBAR
+    ═══════════════════════════════════════════════ */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: rgba(14, 15, 17, 0.85);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar-inner {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 36px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--r-md);
+      background: linear-gradient(135deg, #c9a84c, #e8c76a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(201,168,76,0.3);
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .brand-mark::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+    }
+
+    .brand-mark svg {
+      width: 20px;
+      height: 20px;
+      color: #fff;
+      z-index: 1;
+      position: relative;
+    }
+
+    .brand-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .brand-name em {
+      color: var(--gold);
+      font-style: normal;
+    }
+
+    .nav-pill {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--line2);
+      color: var(--text2);
+      background: var(--bg3);
+      letter-spacing: 0.2px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════════ */
+    .hero {
+      position: relative;
+      z-index: 10;
+      padding: 56px 36px 48px;
+      max-width: 1360px;
+      margin: 0 auto;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+      padding: 5px 12px 5px 8px;
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 20px;
+      background: rgba(201,168,76,0.06);
+    }
+
+    .hero-tag-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(36px, 5vw, 58px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .hero h1 .gold-word {
+      color: transparent;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 15px;
+      color: var(--text2);
+      line-height: 1.7;
+      max-width: 520px;
+      margin-bottom: 32px;
+      font-weight: 300;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .hero-stat {
+      padding: 14px 28px;
+      border-right: 1px solid var(--line);
+    }
+
+    .hero-stat:first-child { padding-left: 0; }
+    .hero-stat:last-child  { border-right: none; }
+
+    .stat-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text3);
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    /* ═══════════════════════════════════════════════
+       WORKFLOW TABS
+    ═══════════════════════════════════════════════ */
+    .workflow-wrap {
+      position: relative;
+      z-index: 10;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--bg2);
+    }
+
+    .workflow-inner {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 36px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+    }
+
+    .workflow-inner::-webkit-scrollbar { height: 0; }
+
+    .wf-btn {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 16px 22px;
+      background: transparent;
+      border: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text3);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+
+    .wf-btn:hover {
+      color: var(--text2);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .wf-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+      font-weight: 600;
+    }
+
+    .wf-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--bg4);
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .wf-btn.active .wf-num {
+      background: var(--gold);
+      color: #000;
+    }
+
+    /* ═══════════════════════════════════════════════
+       MAIN LAYOUT
+    ═══════════════════════════════════════════════ */
+    .layout {
+      position: relative;
+      z-index: 10;
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 28px 36px 80px;
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; padding: 20px 20px 60px; }
+    }
+
+    @media (max-width: 800px) {
+      .hero { padding: 36px 20px 28px; }
+      .topbar-inner { padding: 0 20px; }
+      .workflow-inner { padding: 0 20px; }
+    }
+
+    /* ═══════════════════════════════════════════════
+       SIDEBAR
+    ═══════════════════════════════════════════════ */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 90px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       PANEL / CARD
+    ═══════════════════════════════════════════════ */
+    .panel {
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .panel:focus-within { border-color: var(--line2); }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.015);
+    }
+
+    .panel-head-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--r-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .pi-gold  { background: var(--gold-dim);  border: 1px solid rgba(201,168,76,0.2); }
+    .pi-blue  { background: var(--blue-bg);   border: 1px solid var(--blue-line); }
+    .pi-green { background: var(--green-bg);  border: 1px solid var(--green-line); }
+
+    .panel-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .panel-sub   { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+    .char-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text3);
+      background: var(--bg4);
+      padding: 3px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
+
+    /* ═══════════════════════════════════════════════
+       UPLOAD ZONE
+    ═══════════════════════════════════════════════ */
+    .upload-zone {
+      margin: 14px 16px 0;
+      border: 1.5px dashed rgba(255,255,255,0.1);
+      border-radius: var(--r-lg);
+      padding: 14px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+      background: rgba(255,255,255,0.015);
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: rgba(201,168,76,0.4);
+      background: var(--gold-glow);
+    }
+
+    .upload-zone input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .upload-box {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--r-sm);
+      background: var(--bg4);
+      border: 1px solid var(--line2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+    }
+
+    .upload-lbl {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text2);
+      text-align: left;
+    }
+
+    .upload-lbl strong { color: var(--gold); }
+
+    .upload-hint {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    .upload-fb {
+      margin-top: 8px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 6px 10px;
+      border-radius: var(--r-sm);
+      display: none;
+    }
+
+    .upload-fb.ok  { display: block; background: var(--green-bg); color: var(--green); border: 1px solid var(--green-line); }
+    .upload-fb.err { display: block; background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red-line); }
+
+    /* ═══════════════════════════════════════════════
+       TEXTAREAS & INPUTS
+    ═══════════════════════════════════════════════ */
+    .ta-main {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.75;
+      padding: 14px 18px;
+    }
+
+    .ta-main::placeholder { color: var(--text3); }
+
+    .ta-field {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      outline: none;
+      resize: vertical;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.75;
+      padding: 12px 14px;
+      transition: border-color 0.15s;
+    }
+
+    .ta-field:focus {
+      border-color: rgba(201,168,76,0.5);
+      box-shadow: 0 0 0 3px var(--gold-glow);
+    }
+
+    .ta-field::placeholder { color: var(--text3); }
+
+    .inp-field {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      outline: none;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      padding: 9px 12px;
+      transition: border-color 0.15s;
+    }
+
+    .inp-field:focus {
+      border-color: rgba(201,168,76,0.5);
+      box-shadow: 0 0 0 3px var(--gold-glow);
+    }
+
+    .inp-field::placeholder { color: var(--text3); }
+
+    .fld-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text2);
+      margin-bottom: 5px;
+    }
+
+    .fld-group { margin-bottom: 14px; }
+
+    /* ═══════════════════════════════════════════════
+       BUTTONS
+    ═══════════════════════════════════════════════ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 20px;
+      border-radius: var(--r-md);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.18s;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: #000;
+      box-shadow: 0 0 0 1px rgba(201,168,76,0.3), 0 4px 16px rgba(201,168,76,0.2);
+    }
+
+    .btn-gold:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 1px rgba(201,168,76,0.5), 0 8px 24px rgba(201,168,76,0.3);
+    }
+
+    .btn-gold:active { transform: translateY(0); }
+
+    .btn-ghost {
+      background: var(--bg3);
+      color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.25);
+      font-size: 12px;
+      padding: 7px 13px;
+    }
+
+    .btn-ghost:hover {
+      background: var(--gold-dim);
+      border-color: rgba(201,168,76,0.5);
+    }
+
+    .btn-subtle {
+      background: var(--bg4);
+      color: var(--text2);
+      border: 1px solid var(--line);
+      font-size: 12px;
+      padding: 5px 12px;
+    }
+
+    .btn-subtle:hover {
+      border-color: var(--line2);
+      color: var(--text);
+    }
+
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* ═══════════════════════════════════════════════
+       TOOL SECTIONS
+    ═══════════════════════════════════════════════ */
+    .tool-section { display: none; }
+
+    .tool-section.active {
+      display: block;
+      animation: secIn 0.28s cubic-bezier(.2,.8,.3,1);
+    }
+
+    @keyframes secIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .sec-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .sec-head-text h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    .sec-head-text p {
+      font-size: 13px;
+      color: var(--text2);
+      margin-top: 4px;
+      font-weight: 300;
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════════════════
+       LOADER
+    ═══════════════════════════════════════════════ */
+    .loader {
+      display: none;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .loader.on { display: block; }
+
+    .loader-ring {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 18px;
+      border: 2px solid var(--bg4);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loader-title { font-size: 14px; font-weight: 500; color: var(--text2); }
+    .loader-sub   { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+    /* ═══════════════════════════════════════════════
+       EMPTY STATE
+    ═══════════════════════════════════════════════ */
+    .empty {
+      padding: 60px 20px;
+      text-align: center;
+      border: 1px dashed var(--line2);
+      border-radius: var(--r-xl);
+      background: var(--bg2);
+    }
+
+    .empty-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--r-lg);
+      background: var(--bg4);
+      border: 1px solid var(--line2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin: 0 auto 16px;
+    }
+
+    .empty-title { font-size: 15px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+    .empty-desc  { font-size: 13px; color: var(--text3); line-height: 1.6; }
+
+    /* ═══════════════════════════════════════════════
+       RESULT CARDS
+    ═══════════════════════════════════════════════ */
+    .rcard {
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .rcard:last-child { margin-bottom: 0; }
+
+    .rcard-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.015);
+    }
+
+    .rcard-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rcard-body { padding: 20px; }
+
+    /* ═══════════════════════════════════════════════
+       SCORE TILES
+    ═══════════════════════════════════════════════ */
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .score-tile {
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      padding: 16px 12px;
+      text-align: center;
+    }
+
+    .score-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+      letter-spacing: -1px;
+    }
+
+    .score-val.hi { color: var(--green); }
+    .score-val.md { color: var(--amber); }
+    .score-val.lo { color: var(--red); }
+
+    .score-lbl {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .prog-track {
+      height: 3px;
+      background: var(--bg4);
+      border-radius: 2px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .prog-fill { height: 100%; border-radius: 2px; }
+
+    /* ═══════════════════════════════════════════════
+       TAG PILLS
+    ═══════════════════════════════════════════════ */
+    .tag-sec   { margin-bottom: 18px; }
+
+    .tag-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text3);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 5px; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid;
+    }
+
+    .tg  { background: var(--gold-dim);  color: var(--gold2);  border-color: rgba(201,168,76,0.25); }
+    .tb  { background: var(--blue-bg);   color: #8ab4f8;       border-color: var(--blue-line); }
+    .tgr { background: var(--green-bg);  color: var(--green);  border-color: var(--green-line); }
+    .tam { background: var(--amber-bg);  color: var(--amber);  border-color: rgba(245,166,35,0.3); }
+    .tr  { background: var(--red-bg);    color: var(--red);    border-color: var(--red-line); }
+    .tdk { background: var(--bg4);       color: var(--text2);  border-color: var(--line2); }
+
+    /* ═══════════════════════════════════════════════
+       TWO-COLUMN SPLIT
+    ═══════════════════════════════════════════════ */
+    .split2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 700px) { .split2 { grid-template-columns: 1fr; } }
+
+    /* ═══════════════════════════════════════════════
+       LIST ROWS
+    ═══════════════════════════════════════════════ */
+    .lrow {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    .lrow:last-child { border-bottom: none; }
+
+    .ldot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      margin-top: 8px;
+      flex-shrink: 0;
+    }
+
+    /* ═══════════════════════════════════════════════
+       DIFF CARDS (before / after)
+    ═══════════════════════════════════════════════ */
+    .diff {
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .diff:last-child { margin-bottom: 0; }
+
+    .diff-before {
+      padding: 10px 14px;
+      background: rgba(241,96,99,0.06);
+      border-bottom: 1px solid rgba(241,96,99,0.15);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: rgba(241,96,99,0.7);
+      line-height: 1.65;
+      text-decoration: line-through;
+      text-decoration-color: rgba(241,96,99,0.4);
+    }
+
+    .diff-after {
+      padding: 10px 14px;
+      background: rgba(62,207,142,0.05);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--green);
+      line-height: 1.65;
+    }
+
+    .diff-meta {
+      padding: 7px 14px;
+      background: var(--bg3);
+      border-top: 1px solid var(--line);
+      font-size: 11px;
+      color: var(--text3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* ═══════════════════════════════════════════════
+       FLAG ROWS (sanity check)
+    ═══════════════════════════════════════════════ */
+    .flag-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .flag-row:last-child { border-bottom: none; }
+
+    .flag-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    .fgreen { background: var(--green); }
+    .famber { background: var(--amber); }
+    .fred   { background: var(--red); }
+
+    .flag-ttl  { font-size: 13px; font-weight: 600; color: var(--text); }
+    .flag-note { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+    /* ═══════════════════════════════════════════════
+       SUMMARY BOX
+    ═══════════════════════════════════════════════ */
+    .sum-box {
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      padding: 16px;
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.75;
+      margin-bottom: 16px;
+      font-weight: 300;
+    }
+
+    /* ═══════════════════════════════════════════════
+       AUTO-FILL STATUS
+    ═══════════════════════════════════════════════ */
+    .af-status {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 6px 10px;
+      border-radius: var(--r-sm);
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .af-status.ld { display: block; background: var(--blue-bg);  color: var(--blue);  border: 1px solid var(--blue-line); }
+    .af-status.ok { display: block; background: var(--green-bg); color: var(--green); border: 1px solid var(--green-line); }
+    .af-status.er { display: block; background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red-line); }
+
+    /* ═══════════════════════════════════════════════
+       INLINE BANNER
+    ═══════════════════════════════════════════════ */
+    .banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: var(--r-md);
+      font-size: 13px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+      color: var(--text2);
+      background: var(--bg3);
+      border: 1px solid var(--line);
+    }
+
+    .banner-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ═══════════════════════════════════════════════
+       STATUS BADGE
+    ═══════════════════════════════════════════════ */
+    .sbadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .sbadge.ok   { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-line); }
+    .sbadge.warn { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+    .sbadge.err  { background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red-line); }
+
+    /* ═══════════════════════════════════════════════
+       COPY BUTTON
+    ═══════════════════════════════════════════════ */
+    .copy-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: var(--r-sm);
+      background: var(--bg4);
+      border: 1px solid var(--line2);
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+
+    .copy-btn:hover {
+      border-color: rgba(201,168,76,0.4);
+      color: var(--gold);
+    }
+
+    /* ═══════════════════════════════════════════════
+       DIVIDER
+    ═══════════════════════════════════════════════ */
+    .divr { height: 1px; background: var(--line); margin: 16px 0; }
+
+    /* ═══════════════════════════════════════════════
+       TOOL INPUT CARD
+    ═══════════════════════════════════════════════ */
+    .tool-card {
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .tool-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.015);
+    }
+
+    .tool-card-body { padding: 20px; }
+  </style>
+</head>
+<body>
+
+<div class="bg-canvas"></div>
+<div class="bg-grid"></div>
+
+<!-- ═══════════════════════════════════════════════
+     TOPBAR
+═══════════════════════════════════════════════ -->
+<nav class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 12h6M9 16h6M7 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2"/>
+          <path d="M9 4a2 2 0 002 2h2a2 2 0 002-2 2 2 0 00-2-2h-2a2 2 0 00-2 2z"/>
+        </svg>
+      </div>
+      <span class="brand-name">Resume<em>IQ</em></span>
+    </a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════ -->
+<div style="position: relative; z-index: 10;">
+  <div class="hero">
+    <div class="hero-tag">
+      <span class="hero-tag-dot"></span>
+      AI-Powered · ATS-Optimized
+    </div>
+    <h1>Your resume,<br>perfectly <span class="gold-word">aligned.</span></h1>
+    <p class="hero-sub">
+      Upload your resume, paste a job description, and let intelligence do the heavy lifting —
+      zero fabrication, maximum relevance.
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="stat-val">5</span>
+        <span class="stat-label">AI Tools</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-val">ATS</span>
+        <span class="stat-label">Score Analysis</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-val">PDF</span>
+        <span class="stat-label">DOCX · TXT</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-val">0%</span>
+        <span class="stat-label">Fabrication</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     WORKFLOW TABS
+═══════════════════════════════════════════════ -->
+<div class="workflow-wrap">
+  <div class="workflow-inner">
+    <button class="wf-btn active" onclick="showStep('analyze', this)">
+      <span class="wf-num">1</span> JD Analysis
+    </button>
+    <button class="wf-btn" onclick="showStep('gap', this)">
+      <span class="wf-num">2</span> Gap Analysis
+    </button>
+    <button class="wf-btn" onclick="showStep('bullets', this)">
+      <span class="wf-num">3</span> Optimize Bullets
+    </button>
+    <button class="wf-btn" onclick="showStep('summary', this)">
+      <span class="wf-num">4</span> Optimize Summary
+    </button>
+    <button class="wf-btn" onclick="showStep('sanity', this)">
+      <span class="wf-num">5</span> Sanity Check
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MAIN LAYOUT
+═══════════════════════════════════════════════ -->
+<div class="layout">
+
+  <!-- ──────────── SIDEBAR ──────────── -->
+  <aside class="sidebar">
+
+    <!-- Resume Panel -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-head-left">
+          <div class="panel-icon pi-gold">📄</div>
+          <div>
+            <div class="panel-title">Your Resume</div>
+            <div class="panel-sub">Upload or paste below</div>
+          </div>
+        </div>
+        <span class="char-badge" id="resume-count">0 ch</span>
+      </div>
+
+      <div class="upload-zone" id="upload-zone"
+           ondragover="handleDrag(event, true)"
+           ondragleave="handleDrag(event, false)"
+           ondrop="handleDrop(event)">
+        <input type="file" id="file-input" accept=".pdf,.docx,.txt" onchange="handleFileSelect(event)">
+        <div class="upload-row">
+          <div class="upload-box">📎</div>
+          <div>
+            <div class="upload-lbl"><strong>Click to upload</strong> or drag &amp; drop</div>
+            <div class="upload-hint">PDF, DOCX or TXT &nbsp;·&nbsp; max 5 MB</div>
+          </div>
+        </div>
+        <div class="upload-fb" id="upload-fb"></div>
+      </div>
+
+      <textarea class="ta-main" id="resume-input" rows="14"
+        placeholder="Or paste your resume text here...&#10;&#10;The more complete your resume, the better the tailoring results."
+        oninput="updateCount('resume-input', 'resume-count')"></textarea>
+    </div>
+
+    <!-- JD Panel -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-head-left">
+          <div class="panel-icon pi-blue">🎯</div>
+          <div>
+            <div class="panel-title">Job Description</div>
+            <div class="panel-sub">Paste the full JD for best results</div>
+          </div>
+        </div>
+        <span class="char-badge" id="jd-count">0 ch</span>
+      </div>
+      <textarea class="ta-main" id="jd-input" rows="18"
+        placeholder="Paste the complete job description here...&#10;&#10;Include responsibilities, requirements, and skills sections."
+        oninput="updateCount('jd-input', 'jd-count')"></textarea>
+    </div>
+
+  </aside>
+
+  <!-- ──────────── MAIN CONTENT ──────────── -->
+  <main>
+
+    <!-- ── STEP 1: JD ANALYSIS ── -->
+    <div class="tool-section active" id="section-analyze">
+      <div class="sec-head">
+        <div class="sec-head-text">
+          <h2>JD Analysis</h2>
+          <p>Extract must-have skills, ATS keywords, seniority signals, and red flags from the job description.</p>
+        </div>
+        <button class="btn btn-gold" onclick="runAnalysis()">
+          <svg viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 5.5V8l1.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Analyze JD
+        </button>
+      </div>
+      <div id="analyze-loader" class="loader">
+        <div class="loader-ring"></div>
+        <div class="loader-title">Analyzing job description</div>
+        <div class="loader-sub">Extracting skills, keywords &amp; signals…</div>
+      </div>
+      <div id="analyze-results">
+        <div class="empty">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-title">No analysis yet</div>
+          <div class="empty-desc">Paste a JD on the left and click <strong>Analyze JD</strong> to get started.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: GAP ANALYSIS ── -->
+    <div class="tool-section" id="section-gap">
+      <div class="sec-head">
+        <div class="sec-head-text">
+          <h2>Gap Analysis</h2>
+          <p>Get your ATS score, uncover missing keywords, and receive smart reword suggestions.</p>
+        </div>
+        <button class="btn btn-gold" onclick="runGapAnalysis()">
+          <svg viewBox="0 0 16 16" fill="none">
+            <path d="M2 4h12M2 8h8M2 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Run Gap Analysis
+        </button>
+      </div>
+      <div id="gap-loader" class="loader">
+        <div class="loader-ring"></div>
+        <div class="loader-title">Running gap analysis</div>
+        <div class="loader-sub">Comparing your resume against the JD…</div>
+      </div>
+      <div id="gap-results">
+        <div class="empty">
+          <div class="empty-icon">📊</div>
+          <div class="empty-title">No analysis yet</div>
+          <div class="empty-desc">Add both your resume and JD, then click <strong>Run Gap Analysis</strong>.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: OPTIMIZE BULLETS ── -->
+    <div class="tool-section" id="section-bullets">
+      <div class="sec-head">
+        <div class="sec-head-text">
+          <h2>Optimize Bullets</h2>
+          <p>Reword your work experience bullets to match the JD — same facts, smarter framing, zero fabrication.</p>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-head">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="panel-icon pi-green">✍️</div>
+            <div>
+              <div class="panel-title">Bullet Points</div>
+              <div class="panel-sub">From your work experience</div>
+            </div>
+          </div>
+          <button class="btn btn-ghost" id="autofill-bullets-btn" onclick="autoFillSection('bullets')">
+            ⚡ Auto-fill
+          </button>
+        </div>
+        <div class="tool-card-body">
+          <div class="af-status" id="bullets-af-status"></div>
+          <div class="fld-group">
+            <label class="fld-label">Bullet points to optimize</label>
+            <textarea class="ta-field" id="bullets-input" rows="8"
+              placeholder="• Led infrastructure migrations across 3 AWS regions&#10;• Built Grafana dashboards for SLO tracking&#10;• Automated CI/CD pipelines reducing release time by 40%&#10;&#10;Or click ⚡ Auto-fill above to pull directly from your resume."></textarea>
+          </div>
+          <div class="fld-group">
+            <label class="fld-label">
+              Keywords to include
+              <span style="color:var(--text3); font-weight:400;">(optional, comma-separated)</span>
+            </label>
+            <input class="inp-field" id="keywords-input"
+              placeholder="reliability, SLO, Terraform, Kubernetes, incident response">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-gold" onclick="runBulletOptimization()">
+              <svg viewBox="0 0 16 16" fill="none">
+                <path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Optimize Bullets
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="bullets-loader" class="loader">
+        <div class="loader-ring"></div>
+        <div class="loader-title">Optimizing bullet points</div>
+        <div class="loader-sub">Rewording with JD-relevant keywords…</div>
+      </div>
+      <div id="bullets-results">
+        <div class="empty">
+          <div class="empty-icon">✍️</div>
+          <div class="empty-title">No results yet</div>
+          <div class="empty-desc">Fill in your bullet points above and click <strong>Optimize Bullets</strong>.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: OPTIMIZE SUMMARY ── -->
+    <div class="tool-section" id="section-summary">
+      <div class="sec-head">
+        <div class="sec-head-text">
+          <h2>Optimize Summary</h2>
+          <p>Align your professional summary to the target role — your real voice, better positioned.</p>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-head">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="panel-icon pi-blue">📝</div>
+            <div>
+              <div class="panel-title">Professional Summary</div>
+              <div class="panel-sub">Your current summary or objective</div>
+            </div>
+          </div>
+          <button class="btn btn-ghost" id="autofill-summary-btn" onclick="autoFillSection('summary')">
+            ⚡ Auto-fill
+          </button>
+        </div>
+        <div class="tool-card-body">
+          <div class="af-status" id="summary-af-status"></div>
+          <div class="fld-group">
+            <label class="fld-label">Current summary</label>
+            <textarea class="ta-field" id="summary-input" rows="5"
+              placeholder="Paste your current professional summary or objective here...&#10;&#10;Or click ⚡ Auto-fill above to extract it from your uploaded resume."></textarea>
+          </div>
+          <div class="fld-group">
+            <label class="fld-label">
+              Target job title
+              <span style="color:var(--text3); font-weight:400;">(optional)</span>
+            </label>
+            <input class="inp-field" id="jobtitle-input"
+              placeholder="e.g. Senior Site Reliability Engineer, Platform Engineering Lead">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-gold" onclick="runSummaryOptimization()">
+              <svg viewBox="0 0 16 16" fill="none">
+                <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              Optimize Summary
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="summary-loader" class="loader">
+        <div class="loader-ring"></div>
+        <div class="loader-title">Optimizing your summary</div>
+        <div class="loader-sub">Aligning with JD keywords and role requirements…</div>
+      </div>
+      <div id="summary-results">
+        <div class="empty">
+          <div class="empty-icon">📝</div>
+          <div class="empty-title">No results yet</div>
+          <div class="empty-desc">Fill in your summary above and click <strong>Optimize Summary</strong>.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 5: SANITY CHECK ── -->
+    <div class="tool-section" id="section-sanity">
+      <div class="sec-head">
+        <div class="sec-head-text">
+          <h2>Sanity Check</h2>
+          <p>Verify your tailored resume is consistent, format-intact, and free from exaggerations before applying.</p>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-head">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="panel-icon pi-green">✅</div>
+            <div>
+              <div class="panel-title">Tailored Resume</div>
+              <div class="panel-sub">Your updated version for comparison</div>
+            </div>
+          </div>
+        </div>
+        <div class="tool-card-body">
+          <div class="banner">
+            <span class="banner-icon">ℹ️</span>
+            <span>
+              Paste your <strong>tailored</strong> resume below. Your <strong>original</strong>
+              should already be in the left panel. We'll compare both and flag any integrity issues.
+            </span>
+          </div>
+          <div class="fld-group">
+            <label class="fld-label">Tailored resume text</label>
+            <textarea class="ta-field" id="tailored-input" rows="12"
+              placeholder="Paste your updated / tailored resume here for final review…"></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-gold" onclick="runSanityCheck()">
+              <svg viewBox="0 0 16 16" fill="none">
+                <path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Run Sanity Check
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="sanity-loader" class="loader">
+        <div class="loader-ring"></div>
+        <div class="loader-title">Running sanity check</div>
+        <div class="loader-sub">Comparing original vs tailored resume…</div>
+      </div>
+      <div id="sanity-results">
+        <div class="empty">
+          <div class="empty-icon">✅</div>
+          <div class="empty-title">No results yet</div>
+          <div class="empty-desc">
+            Paste your tailored resume above and click <strong>Run Sanity Check</strong><br>
+            to get a section-by-section integrity report.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- end .layout -->
+
+<!-- ═══════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════ -->
+<script>
+
+  // ── UTILITIES ────────────────────────────────────────────────────────
+  function updateCount(inputId, countId) {
+    const len = document.getElementById(inputId).value.length;
+    document.getElementById(countId).textContent = len.toLocaleString() + ' ch';
+  }
+
+  function showStep(step, btn) {
+    document.querySelectorAll('.tool-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.wf-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('section-' + step).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function getResume() { return document.getElementById('resume-input').value.trim(); }
+  function getJD()     { return document.getElementById('jd-input').value.trim(); }
+
+  function showLoader(id) { document.getElementById(id).classList.add('on'); }
+  function hideLoader(id) { document.getElementById(id).classList.remove('on'); }
+  function setEl(id, html) { document.getElementById(id).innerHTML = html; }
+
+  function sc(v)     { return v >= 75 ? 'hi' : v >= 50 ? 'md' : 'lo'; }
+  function scolor(v) { return v >= 75 ? 'var(--green)' : v >= 50 ? 'var(--amber)' : 'var(--red)'; }
+
+  function errHTML(msg) {
+    return `
+      <div class="empty">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-title">Something went wrong</div>
+        <div class="empty-desc">${msg}</div>
+      </div>`;
+  }
+
+  // ── FILE UPLOAD ──────────────────────────────────────────────────────
+  function handleDrag(e, over) {
+    e.preventDefault();
+    document.getElementById('upload-zone').classList.toggle('drag-over', over);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('upload-zone').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) uploadFile(file);
+  }
+
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) uploadFile(file);
+  }
+
+  async function uploadFile(file) {
+    const fb = document.getElementById('upload-fb');
+    fb.className = 'upload-fb';
+    fb.textContent = '⏳ Reading file…';
+    fb.style.display = 'block';
+
+    const fd = new FormData();
+    fd.append('file', file);
+
+    try {
+      const res  = await fetch('/upload-resume', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('resume-input').value = data.text;
+        updateCount('resume-input', 'resume-count');
+        fb.className   = 'upload-fb ok';
+        fb.textContent = `✓ "${file.name}" · ${data.text.length.toLocaleString()} characters extracted`;
+      } else {
+        fb.className   = 'upload-fb err';
+        fb.textContent = '✕ ' + data.error;
+      }
+    } catch (err) {
+      fb.className   = 'upload-fb err';
+      fb.textContent = '✕ Upload failed: ' + err.message;
+    }
+  }
+
+  // ── AUTO-FILL FROM RESUME ────────────────────────────────────────────
+  async function autoFillSection(section) {
+    const resume = getResume();
+    if (!resume) {
+      alert('Please upload or paste your resume in the left panel first.');
+      return;
+    }
+
+    const btnId   = 'autofill-' + section + '-btn';
+    const stId    = section + '-af-status';
+    const inputId = section === 'bullets' ? 'bullets-input' : 'summary-input';
+    const btn     = document.getElementById(btnId);
+    const st      = document.getElementById(stId);
+
+    btn.disabled    = true;
+    btn.textContent = '⏳ Extracting…';
+    st.className    = 'af-status ld';
+    st.textContent  = section === 'bullets'
+      ? '⏳ Extracting bullet points from your resume…'
+      : '⏳ Extracting summary from your resume…';
+
+    try {
+      const res  = await fetch('/extract-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resume, section })
+      });
+      const data = await res.json();
+
+      if (data.success && data.text) {
+        document.getElementById(inputId).value = data.text;
+        st.className   = 'af-status ok';
+        st.textContent = section === 'bullets'
+          ? `✓ ${data.text.split('\n').filter(l => l.trim()).length} bullet points extracted`
+          : '✓ Summary extracted from your resume';
+      } else {
+        st.className   = 'af-status er';
+        st.textContent = '✕ ' + (data.error || 'Could not extract. Try pasting manually.');
+      }
+    } catch (err) {
+      st.className   = 'af-status er';
+      st.textContent = '✕ ' + err.message;
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = '⚡ Auto-fill';
+    }
+  }
+
+  // ── STEP 1: JD ANALYSIS ──────────────────────────────────────────────
+  async function runAnalysis() {
+    const jd = getJD();
+    if (!jd) { alert('Please paste a Job Description in the left panel first.'); return; }
+
+    showLoader('analyze-loader');
+    setEl('analyze-results', '');
+
+    const res  = await fetch('/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jd })
+    });
+    const data = await res.json();
+    hideLoader('analyze-loader');
+
+    if (!data.success) { setEl('analyze-results', errHTML(data.error)); return; }
+
+    const d = data.data;
+
+    setEl('analyze-results', `
+      <div class="rcard">
+        <div class="rcard-head">
+          <span class="rcard-title">JD Breakdown</span>
+          <span class="sbadge ok">ATS Ready</span>
+        </div>
+        <div class="rcard-body">
+          <div class="split2">
+            <div>
+              <div class="tag-sec">
+                <div class="tag-label">Must-Have Skills</div>
+                <div class="tag-row">
+                  ${d.must_have.map(s => `<span class="tag tg">${s}</span>`).join('')}
+                </div>
+              </div>
+              <div class="tag-sec">
+                <div class="tag-label">Good to Have</div>
+                <div class="tag-row">
+                  ${d.good_to_have.map(s => `<span class="tag tdk">${s}</span>`).join('')}
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="tag-sec">
+                <div class="tag-label">⚡ ATS Keywords</div>
+                <div class="tag-row">
+                  ${d.ats_keywords.map(s => `<span class="tag tam">${s}</span>`).join('')}
+                </div>
+              </div>
+              <div class="tag-sec">
+                <div class="tag-label">🎯 Seniority Signals</div>
+                <div class="tag-row">
+                  ${d.seniority_signals.map(s => `<span class="tag tgr">${s}</span>`).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+          ${d.red_flags && d.red_flags.length ? `
+          <div class="divr"></div>
+          <div class="tag-sec">
+            <div class="tag-label">🚩 Red Flags / Unusual Requirements</div>
+            <div class="tag-row">
+              ${d.red_flags.map(s => `<span class="tag tr">${s}</span>`).join('')}
+            </div>
+          </div>` : ''}
+        </div>
+      </div>`);
+  }
+
+  // ── STEP 2: GAP ANALYSIS ────────────────────────────────────────────
+  async function runGapAnalysis() {
+    const resume = getResume(), jd = getJD();
+    if (!resume || !jd) { alert('Please add both your resume and JD in the left panel.'); return; }
+
+    showLoader('gap-loader');
+    setEl('gap-results', '');
+
+    const res  = await fetch('/gap-analysis', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resume, jd })
+    });
+    const data = await res.json();
+    hideLoader('gap-loader');
+
+    if (!data.success) { setEl('gap-results', errHTML(data.error)); return; }
+
+    const d  = data.data;
+    const sb = d.score_breakdown || {};
+
+    setEl('gap-results', `
+      <div class="rcard" style="margin-bottom:14px;">
+        <div class="rcard-head">
+          <span class="rcard-title">ATS Score Breakdown</span>
+        </div>
+        <div class="rcard-body">
+          <div class="score-grid">
+            <div class="score-tile">
+              <div class="score-val ${sc(d.ats_score)}">${d.ats_score}</div>
+              <div class="score-lbl">Overall ATS</div>
+              <div class="prog-track">
+                <div class="prog-fill" style="width:${d.ats_score}%; background:${scolor(d.ats_score)}"></div>
+              </div>
+            </div>
+            ${Object.entries(sb).filter(([k]) => k !== 'overall').map(([k, v]) => `
+            <div class="score-tile">
+              <div class="score-val ${sc(v)}">${v}</div>
+              <div class="score-lbl">${k.replace(/_/g, ' ')}</div>
+              <div class="prog-track">
+                <div class="prog-fill" style="width:${v}%; background:${scolor(v)}"></div>
+              </div>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div class="rcard" style="margin-bottom:14px;">
+        <div class="rcard-head">
+          <span class="rcard-title">Keyword &amp; Experience Analysis</span>
+        </div>
+        <div class="rcard-body">
+          <div class="split2">
+            <div>
+              <div class="tag-label" style="margin-bottom:8px;">✅ Already Aligned</div>
+              ${d.aligned_points.map(p => `
+              <div class="lrow">
+                <div class="ldot"></div>
+                <span>${p}</span>
+              </div>`).join('')}
+            </div>
+            <div>
+              <div class="tag-label" style="margin-bottom:6px;">❌ Missing Keywords</div>
+              <div class="tag-row" style="margin-bottom:14px;">
+                ${d.missing_keywords.map(k => `<span class="tag tr">${k}</span>`).join('')}
+              </div>
+              <div class="tag-label" style="margin-bottom:6px;">💡 Undersold Experiences</div>
+              ${d.undersold_experiences.map(e => `
+              <div class="lrow">
+                <div class="ldot" style="background:var(--amber)"></div>
+                <span>${e}</span>
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      ${d.reword_suggestions && d.reword_suggestions.length ? `
+      <div class="rcard">
+        <div class="rcard-head">
+          <span class="rcard-title">Suggested Rewording</span>
+          <span class="sbadge ok">${d.reword_suggestions.length} suggestions</span>
+        </div>
+        <div class="rcard-body">
+          ${d.reword_suggestions.map(s => `
+          <div class="diff">
+            <div class="diff-before">${s.original}</div>
+            <div class="diff-after">${s.suggested}</div>
+            <div class="diff-meta"><span>${s.reason}</span></div>
+          </div>`).join('')}
+        </div>
+      </div>` : ''}`);
+  }
+
+  // ── STEP 3: OPTIMIZE BULLETS ─────────────────────────────────────────
+  async function runBulletOptimization() {
+    const bullets  = document.getElementById('bullets-input').value.trim();
+    const jd       = getJD();
+    const kwRaw    = document.getElementById('keywords-input').value;
+    if (!bullets || !jd) { alert('Please add bullet points and the JD.'); return; }
+
+    const keywords = kwRaw ? kwRaw.split(',').map(k => k.trim()).filter(Boolean) : [];
+
+    showLoader('bullets-loader');
+    setEl('bullets-results', '');
+
+    const res  = await fetch('/optimize-bullets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bullets, jd, keywords })
+    });
+    const data = await res.json();
+    hideLoader('bullets-loader');
+
+    if (!data.success) { setEl('bullets-results', errHTML(data.error)); return; }
+
+    const out = data.data.optimized_bullets;
+    window._bcopy = out.map(b => '• ' + b.optimized).join('\n');
+
+    setEl('bullets-results', `
+      <div class="rcard">
+        <div class="rcard-head">
+          <span class="rcard-title">Optimized Bullets · ${out.length} total</span>
+          <button class="copy-btn"
+            onclick="navigator.clipboard.writeText(window._bcopy);
+                     this.textContent='✓ Copied';
+                     setTimeout(() => this.textContent='Copy All', 2000)">
+            Copy All
+          </button>
+        </div>
+        <div class="rcard-body">
+          ${out.map(b => `
+          <div class="diff">
+            <div class="diff-before">${b.original}</div>
+            <div class="diff-after">• ${b.optimized}</div>
+            ${b.keywords_added && b.keywords_added.length ? `
+            <div class="diff-meta">
+              <span style="color:var(--text3)">Keywords added</span>
+              <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                ${b.keywords_added.map(k => `<span class="tag tgr" style="font-size:11px;">${k}</span>`).join('')}
+              </div>
+            </div>` : ''}
+          </div>`).join('')}
+        </div>
+      </div>`);
+  }
+
+  // ── STEP 4: OPTIMIZE SUMMARY ─────────────────────────────────────────
+  async function runSummaryOptimization() {
+    const summary   = document.getElementById('summary-input').value.trim();
+    const jd        = getJD();
+    const job_title = document.getElementById('jobtitle-input').value || 'the role';
+    if (!summary || !jd) { alert('Please add your summary and the JD.'); return; }
+
+    showLoader('summary-loader');
+    setEl('summary-results', '');
+
+    const res  = await fetch('/optimize-summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ summary, jd, job_title })
+    });
+    const data = await res.json();
+    hideLoader('summary-loader');
+
+    if (!data.success) { setEl('summary-results', errHTML(data.error)); return; }
+
+    const d = data.data;
+    window._scopy = d.optimized_summary;
+
+    setEl('summary-results', `
+      <div class="rcard">
+        <div class="rcard-head">
+          <span class="rcard-title">Optimized Professional Summary</span>
+          <button class="copy-btn"
+            onclick="navigator.clipboard.writeText(window._scopy);
+                     this.textContent='✓ Copied';
+                     setTimeout(() => this.textContent='Copy', 2000)">
+            Copy
+          </button>
+        </div>
+        <div class="rcard-body">
+          <div class="sum-box">${d.optimized_summary}</div>
+          <div class="tag-sec">
+            <div class="tag-label">Keywords Included</div>
+            <div class="tag-row">
+              ${(d.keywords_included || []).map(k => `<span class="tag tgr">${k}</span>`).join('')}
+            </div>
+          </div>
+          <div class="divr"></div>
+          <div class="tag-label" style="margin-bottom:10px;">Changes Made</div>
+          ${(d.changes_made || []).map(c => `
+          <div class="lrow">
+            <div class="ldot"></div>
+            <span>${c}</span>
+          </div>`).join('')}
+        </div>
+      </div>`);
+  }
+
+  // ── STEP 5: SANITY CHECK ─────────────────────────────────────────────
+  async function runSanityCheck() {
+    const original = getResume();
+    const tailored = document.getElementById('tailored-input').value.trim();
+    if (!original || !tailored) {
+      alert('Please provide both original (left panel) and tailored resumes.');
+      return;
+    }
+
+    showLoader('sanity-loader');
+    setEl('sanity-results', '');
+
+    const res  = await fetch('/sanity-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ original, tailored })
+    });
+    const data = await res.json();
+    hideLoader('sanity-loader');
+
+    if (!data.success) { setEl('sanity-results', errHTML(data.error)); return; }
+
+    const d  = data.data;
+    const bc = d.overall_rating === 'green' ? 'ok' : d.overall_rating === 'yellow' ? 'warn' : 'err';
+    const bl = d.overall_rating === 'green' ? '✓ Looks Good'
+             : d.overall_rating === 'yellow' ? '⚠ Minor Issues'
+             : '✕ Issues Found';
+
+    setEl('sanity-results', `
+      <div class="rcard" style="margin-bottom:14px;">
+        <div class="rcard-head">
+          <span class="rcard-title">Integrity Overview</span>
+          <span class="sbadge ${bc}">${bl}</span>
+        </div>
+        <div class="rcard-body">
+          <div class="score-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="score-tile">
+              <div style="font-size:26px; margin-bottom:6px;">${d.format_preserved ? '✓' : '✕'}</div>
+              <div class="score-lbl">Format Preserved</div>
+            </div>
+            <div class="score-tile">
+              <div style="font-size:26px; margin-bottom:6px;">${d.sections_intact ? '✓' : '✕'}</div>
+              <div class="score-lbl">Sections Intact</div>
+            </div>
+            <div class="score-tile">
+              <div class="score-val ${sc(d.consistency_score)}">${d.consistency_score}</div>
+              <div class="score-lbl">Consistency</div>
+              <div class="prog-track">
+                <div class="prog-fill"
+                     style="width:${d.consistency_score}%; background:${scolor(d.consistency_score)}">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rcard" style="margin-bottom:14px;">
+        <div class="rcard-head">
+          <span class="rcard-title">Section Flags</span>
+          <span class="sbadge ok">${d.flags.length} sections checked</span>
+        </div>
+        <div class="rcard-body">
+          ${d.flags.map(f => `
+          <div class="flag-row">
+            <div class="flag-dot ${f.status === 'green' ? 'fgreen' : f.status === 'yellow' ? 'famber' : 'fred'}"></div>
+            <div>
+              <div class="flag-ttl">${f.section}</div>
+              <div class="flag-note">${f.note}</div>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      ${d.final_recommendations && d.final_recommendations.length ? `
+      <div class="rcard">
+        <div class="rcard-head">
+          <span class="rcard-title">Final Recommendations</span>
+        </div>
+        <div class="rcard-body">
+          ${d.final_recommendations.map(r => `
+          <div class="lrow">
+            <div class="ldot"></div>
+            <span>${r}</span>
+          </div>`).join('')}
+        </div>
+      </div>` : ''}`);
+  }
+
+</script>
+</body>
+</html>
